@@ -1,5 +1,7 @@
 trigger AccountTrigger on Account (before insert) {
     if(trigger.isInsert){
-        System.debug('Before Insert');
+        for(Account acc:trigger.new){
+            acc.Description = 'Updated from trigger';
+        }
     }
 }
