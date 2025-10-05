@@ -1,76 +1,69 @@
-#!groovy
-
 pipeline {
-	agent any
+    agent any
 
-		
-	environment {
-		SF_USERNAME = credentials('SF_USERNAME')
-		SF_CONSUMER_KEY = credentials('SF_CONSUMER_KEY')
-		SF_JWT_KEY = credentials('407ebe89-78e4-4b27-a63f-680bdb860ddc')
-	}
-	
-	stages {
-		stage('Checkout Code'){
-			steps {
-				git branch: 'master', url: 'https://github.com/Kgothatso-maleka/salesforce-training.git'
-			}
-		}
-		
-		stage('Authenticate'){
-			steps {
-				bat """
-				echo "%SF_JWT_KEY% > server.key
-				
-				sf org login jwt ^
-				 --client_id "%SF_CONSUMER_KEY%" ^
-				 --jwt-key-file "%SF_JWT_KEY%" ^
-				 --username "%SF_USERNAME%" ^
-				 --instance-url https://login.salesforce.com ^
-				 --alias TargetOrg
-                 """
-			}
-		}
-		
-		stage('Code Quality Check'){
-			steps {
-				bat """
-				sf scanner run --target "force-app" --format table
-				"""
-			}
-		}
-		
-		stage('Run Apex Tests'){
-			steps {
-				bat """
-			sf apex run test ^
-				--wait 10 ^
-				--code-coverage ^ 
-				--result-format human ^
-				--target-org TargetOrg
-				"""
-			}
-			
-		}
-		
-		stage('Deploy to org'){
-			steps {
-				bat """
-				sf project deploy start ^
-					--source-dir force-app ^
-					--target-org TargetOrg ^ 
-					--ignore-conflicts
-				"""
-			}
-		}
-	}
-	
-	post {
-    always {
-        script {
-            junit 'test-results/test-result-*.xml'
+    environment {
+        SF_USERNAME = credentials('SF_USERNAME')
+        SF_CONSUMER_KEY = credentials('SF_CONSUMER_KEY')
+        PATH = "C:\\Program Files\\Salesforce CLI\\bin;${env.PATH}"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'master', url: 'https://github.com/Kgothatso-maleka/salesforce-training.git'
+            }
+        }
+
+        stage('Authenticate') {
+            steps {
+                withCredentials([file(credentialsId: 'SF_JWT_KEY_FILE', variable: 'JWT_FILE')]) {
+                    bat """
+                    sf org login jwt ^
+                      --client-id "%SF_CONSUMER_KEY%" ^
+                      --jwt-key-file "%JWT_FILE%" ^
+                      --username "%SF_USERNAME%" ^
+                      --instance-url https://login.salesforce.com ^
+                      --alias TargetOrg
+                    """
+                }
+            }
+        }
+
+        stage('Code Quality Check') {
+            steps {
+                bat """
+                sf scanner run --target "force-app" --format table
+                """
+            }
+        }
+
+        stage('Run Apex Tests') {
+            steps {
+                bat """
+                sf apex run test ^
+                  --target-org TargetOrg ^
+                  --result-format junit ^
+                  --output-dir test-results ^
+                  --wait 10
+                """
+            }
+        }
+
+        stage('Deploy to org') {
+            steps {
+                bat """
+                sf project deploy start ^
+                  --source-dir force-app ^
+                  --target-org TargetOrg ^
+                  --ignore-conflicts
+                """
+            }
         }
     }
-}
 
+    post {
+        always {
+            junit 'test-results/*.xml'
+        }
+    }
 }
