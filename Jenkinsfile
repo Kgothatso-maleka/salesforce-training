@@ -5,8 +5,8 @@ pipeline {
 
     environment {
         SF_USERNAME     = "malekak97406@agentforce.com"
-        SF_CONSUMER_KEY = credentials('3MVG9rZjd7MXFdLiS2SHokImLBVDhXCjp3nDDhrmZkXRZyNYJFNZKBBf_rzHrdBhH2wohoXJMLaOCNpV1mhkv')
-        SF_JWT_KEY      = credentials('407ebe89-78e4-4b27-a63f-680bdb860ddc')
+        SF_CONSUMER_KEY = "3MVG9rZjd7MXFdLiS2SHokImLBVDhXCjp3nDDhrmZkXRZyNYJFNZKBBf_rzHrdBhH2wohoXJMLaOCNpV1mhkv"
+        SF_JWT_KEY      = "407ebe89-78e4-4b27-a63f-680bdb860ddc"
     }
 
     stages {
