@@ -1,61 +1,73 @@
 #!groovy
-import groovy.json.JsonSlurperClassic
-node {
 
-    def BUILD_NUMBER=env.BUILD_NUMBER
-    def RUN_ARTIFACT_DIR="tests/${BUILD_NUMBER}"
-    def SFDC_USERNAME
-
-    def HUB_ORG=env.HUB_ORG_DH
-    def SFDC_HOST = env.SFDC_HOST_DH
-    def JWT_KEY_CRED_ID = env.JWT_CRED_ID_DH
-    def CONNECTED_APP_CONSUMER_KEY=env.CONNECTED_APP_CONSUMER_KEY_DH
-
-    println 'KEY IS' 
-    println JWT_KEY_CRED_ID
-    println HUB_ORG
-    println SFDC_HOST
-    println CONNECTED_APP_CONSUMER_KEY
-    def toolbelt = tool 'toolbelt'
-
-    stage('checkout source') {
-        // when running in multi-branch job, one must issue this command
-        checkout scm
-    }
-
-    withCredentials([file(credentialsId: JWT_KEY_CRED_ID, variable: 'jwt_key_file')]) {
-        stage('Deploye Code') {
-            if (isUnix()) {
-                rc = sh returnStatus: true, script: "${toolbelt} org login jwt --clientid ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwtkeyfile ${jwt_key_file} --setdefaultdevhubusername --instanceurl ${SFDC_HOST}"
-            }else{
-		    //bat "${toolbelt} plugins:install salesforcedx@49.5.0"
-		    bat "${toolbelt} update"
-		    //bat "${toolbelt} org logout -u ${HUB_ORG} -p" 
-                 rc = bat returnStatus: true, script: "${toolbelt} org login jwt --clientid ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwtkeyfile ${jwt_key_file} --loglevel DEBUG --setdefaultdevhubusername --instanceurl ${SFDC_HOST}"
-            }
+pipeline {
+	agent any
+	
+	tools {
+		notejs "NodeJS"
+	}
 		
-            if (rc != 0) { 
-		    println 'inside rc 0'
-		    error 'hub org authorization failed' 
-	    }
-		else{
-			println 'rc not 0'
-		}
-
-			println rc
-			
-			// need to pull out assigned username
-			if (isUnix()) {
-				//rmsg = sh returnStdout: true, script: "${toolbelt} project deploy start -d manifest/. -u ${HUB_ORG}"
-				rmsg = sh returnStdout: true, script: "${toolbelt} project deploy start -x manifest/package.xml -u ${HUB_ORG}"
-			}else{
-				rmsg = bat returnStdout: true, script: "${toolbelt} project deploy start -x manifest/package.xml -u ${HUB_ORG}"
-			   //rmsg = bat returnStdout: true, script: "${toolbelt} project deploy start -d manifest/. -u ${HUB_ORG}"
+	environment {
+		SF_USERNAME = "malekak97406@agentforce.com"
+		SF_CONSUMER_KEY = credentials('3MVG9rZjd7MXFdLiS2SHokImLBVDhXCjp3nDDhrmZkXRZyNYJFNZKBBf_rzHrdBhH2wohoXJMLaOCNpV1mhkv')
+		SF_JWT_KEY = credentials('407ebe89-78e4-4b27-a63f-680bdb860ddc')
+	}
+	
+	stages {
+		stage('Checkout Code'){
+			steps {
+				git branch: 'master', url: 'https://github.com/Kgothatso-maleka/salesforce-training.git'
 			}
-			  
-            printf rmsg
-            println('Hello from a Job DSL script!')
-            println(rmsg)
-        }
-    }
+		}
+		
+		stage('Authenticate'){
+			steps {
+				sh '''
+				echo "$SF_JWT_KEY" > server.key
+				
+				sf org login jwt \
+				 --client_id $SF_CONSUMER_KEY \
+				 --jwt-key-file server.key \
+				 --username $SF_USERNAME \
+				 --instance-url https://login.salesforce.com \
+				 --alias TargetOrg
+			}
+		}
+		
+		stage('Code Quality Check'){
+			steps {
+				sh '''
+				sf scanner run --target "force-app" --format table
+			}
+		}
+		
+		stage('Run Apex Tests'){
+			steps {
+				sh '''
+			sf apex run test \
+				--wait 10 \
+				--code-coverage \ 
+				--result-format human \
+				--target-org TargetOrg
+			}
+			
+		}
+		
+		stage('Deploy to org'){
+			steps {
+				sh '''
+				sf project deploy start \
+					--source-dir force-app \
+					--target-org TargetOrg \ 
+					--ignore-conflicts
+				
+			}
+		}
+	}
+	
+	post {
+	 always {
+		junit 'test-results/test-result-*.xml'
+	 }
+	}
 }
