@@ -16,7 +16,7 @@ pipeline {
 
         stage('Authenticate') {
             steps {
-                withCredentials([file(credentialsId: 'SF_JWT_KEY_FILE', variable: 'JWT_FILE')]) {
+                withCredentials([file(credentialsId: 'JWT_FILE', variable: 'JWT_FILE')]) {
                     bat """
                     sf org login jwt ^
                       --client-id "%SF_CONSUMER_KEY%" ^
