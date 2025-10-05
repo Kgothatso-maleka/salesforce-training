@@ -4,7 +4,7 @@ pipeline {
     environment {
         SF_USERNAME = credentials('SF_USERNAME')
         SF_CONSUMER_KEY = credentials('SF_CONSUMER_KEY')
-        PATH = "C:\Program Files\sf\bin;${env.PATH}"
+        PATH = "C:\\Program Files\\sf\\bin;${env.PATH}"
     }
 
     stages {
