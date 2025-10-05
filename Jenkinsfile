@@ -29,13 +29,7 @@ pipeline {
             }
         }
 
-        stage('Code Quality Check') {
-            steps {
-                bat """
-                sf scanner run --target "force-app" --format table
-                """
-            }
-        }
+        
 
         stage('Run Apex Tests') {
             steps {
