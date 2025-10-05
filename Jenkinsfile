@@ -64,8 +64,11 @@ pipeline {
     }
 
     post {
-        always {
+    always {
+        script {
             junit 'test-results/test-result-*.xml'
         }
     }
+}
+
 }
