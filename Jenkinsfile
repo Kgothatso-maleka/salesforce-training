@@ -34,38 +34,43 @@ pipeline {
 		
 		stage('Code Quality Check'){
 			steps {
-				sh '''
+				bat """
 				sf scanner run --target "force-app" --format table
+				"""
 			}
 		}
 		
 		stage('Run Apex Tests'){
 			steps {
-				sh '''
-			sf apex run test \
-				--wait 10 \
-				--code-coverage \ 
-				--result-format human \
+				bat """
+			sf apex run test ^
+				--wait 10 ^
+				--code-coverage ^ 
+				--result-format human ^
 				--target-org TargetOrg
+				"""
 			}
 			
 		}
 		
 		stage('Deploy to org'){
 			steps {
-				sh '''
-				sf project deploy start \
-					--source-dir force-app \
-					--target-org TargetOrg \ 
+				bat """
+				sf project deploy start ^
+					--source-dir force-app ^
+					--target-org TargetOrg ^ 
 					--ignore-conflicts
-				
+				"""
 			}
 		}
 	}
 	
 	post {
-	 always {
-		junit 'test-results/test-result-*.xml'
-	 }
-	}
+    always {
+        script {
+            junit 'test-results/test-result-*.xml'
+        }
+    }
+}
+
 }
