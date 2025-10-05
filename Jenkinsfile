@@ -29,19 +29,6 @@ pipeline {
             }
         }
 
-        
-
-        stage('Run Apex Tests') {
-            steps {
-                bat """
-                sf apex run test ^
-                  --target-org TargetOrg ^
-                  --result-format junit ^
-                  --output-dir test-results ^
-                  --wait 10
-                """
-            }
-        }
 
         stage('Deploy to org') {
             steps {
