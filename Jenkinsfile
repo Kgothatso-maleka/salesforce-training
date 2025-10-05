@@ -4,7 +4,7 @@ pipeline {
     agent any
 
     tools {
-        nodejs "NodeJS"   // Corrected from notejs → nodejs
+        nodejs "NodeJS16"   // Corrected from notejs → nodejs
     }
 
     environment {
