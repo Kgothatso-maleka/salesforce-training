@@ -31,6 +31,7 @@ pipeline {
 				 --username $SF_USERNAME \
 				 --instance-url https://login.salesforce.com \
 				 --alias TargetOrg
+				 '''
 			}
 		}
 		
@@ -38,6 +39,7 @@ pipeline {
 			steps {
 				sh '''
 				sf scanner run --target "force-app" --format table
+				'''
 			}
 		}
 		
@@ -49,6 +51,7 @@ pipeline {
 				--code-coverage \ 
 				--result-format human \
 				--target-org TargetOrg
+				'''
 			}
 			
 		}
@@ -60,7 +63,7 @@ pipeline {
 					--source-dir force-app \
 					--target-org TargetOrg \ 
 					--ignore-conflicts
-				
+				'''
 			}
 		}
 	}
