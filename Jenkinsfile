@@ -20,7 +20,7 @@ pipeline {
 		stage('Authenticate'){
 			steps {
 				bat """
-				echo "$SF_JWT_KEY" > server.key
+				echo "%SF_JWT_KEY% > server.key
 				
 				sf org login jwt ^
 				 --client_id "%SF_CONSUMER_KEY%" ^
