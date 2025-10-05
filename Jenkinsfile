@@ -3,10 +3,6 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs "NodeJS16"   // Corrected from notejs → nodejs
-    }
-
     environment {
         SF_USERNAME     = "malekak97406@agentforce.com"
         SF_CONSUMER_KEY = credentials('3MVG9rZjd7MXFdLiS2SHokImLBVDhXCjp3nDDhrmZkXRZyNYJFNZKBBf_rzHrdBhH2wohoXJMLaOCNpV1mhkv')
